@@ -25,8 +25,9 @@ ULONG_PTR OperationStatusCtx = 1;
 
 #define PTDBG_TRACE_ROUTINES            0x00000001
 #define PTDBG_TRACE_OPERATION_STATUS    0x00000002
+#define PTDBG_TRACE_WRITE_OPERATION_STATUS    0x00000004
 
-ULONG gTraceFlags = 0;
+ULONG gTraceFlags = 7;
 
 
 #define PT_DBG_PRINT( _dbgLevel, _string )          \
@@ -133,204 +134,10 @@ EXTERN_C_END
 //
 
 CONST FLT_OPERATION_REGISTRATION Callbacks[] = {
-
-#if 0 // TODO - List all of the requests to filter.
-    { IRP_MJ_CREATE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_CREATE_NAMED_PIPE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_CLOSE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_READ,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
     { IRP_MJ_WRITE,
       0,
       ransomdetectorPreOperation,
       ransomdetectorPostOperation },
-
-    { IRP_MJ_QUERY_INFORMATION,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_SET_INFORMATION,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_QUERY_EA,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_SET_EA,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_FLUSH_BUFFERS,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_QUERY_VOLUME_INFORMATION,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_SET_VOLUME_INFORMATION,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_DIRECTORY_CONTROL,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_FILE_SYSTEM_CONTROL,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_DEVICE_CONTROL,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_INTERNAL_DEVICE_CONTROL,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_SHUTDOWN,
-      0,
-      ransomdetectorPreOperationNoPostOperation,
-      NULL },                               //post operations not supported
-
-    { IRP_MJ_LOCK_CONTROL,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_CLEANUP,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_CREATE_MAILSLOT,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_QUERY_SECURITY,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_SET_SECURITY,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_QUERY_QUOTA,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_SET_QUOTA,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_PNP,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_ACQUIRE_FOR_SECTION_SYNCHRONIZATION,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_RELEASE_FOR_SECTION_SYNCHRONIZATION,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_ACQUIRE_FOR_MOD_WRITE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_RELEASE_FOR_MOD_WRITE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_ACQUIRE_FOR_CC_FLUSH,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_RELEASE_FOR_CC_FLUSH,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_FAST_IO_CHECK_IF_POSSIBLE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_NETWORK_QUERY_OPEN,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_MDL_READ,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_MDL_READ_COMPLETE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_PREPARE_MDL_WRITE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_MDL_WRITE_COMPLETE,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_VOLUME_MOUNT,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-    { IRP_MJ_VOLUME_DISMOUNT,
-      0,
-      ransomdetectorPreOperation,
-      ransomdetectorPostOperation },
-
-#endif // TODO
 
     { IRP_MJ_OPERATION_END }
 };
@@ -652,35 +459,83 @@ Return Value:
 
 --*/
 {
-    NTSTATUS status;
-
     UNREFERENCED_PARAMETER( FltObjects );
     UNREFERENCED_PARAMETER( CompletionContext );
 
     PT_DBG_PRINT( PTDBG_TRACE_ROUTINES,
                   ("ransomdetector!ransomdetectorPreOperation: Entered\n") );
 
-    //
-    //  See if this is an operation we would like the operation status
-    //  for.  If so request it.
-    //
-    //  NOTE: most filters do NOT need to do this.  You only need to make
-    //        this call if, for example, you need to know if the oplock was
-    //        actually granted.
-    //
+    PFLT_IO_PARAMETER_BLOCK iopb = Data->Iopb;
+    PFLT_FILE_NAME_INFORMATION nameInfo = { 0 };
+    LARGE_INTEGER byteOffset = iopb->Parameters.Write.ByteOffset;
+    PVOID origBuf = NULL;
+    /* We want the file offset writing, the file name, the pid that did the writing and the data and length*/
 
-    if (ransomdetectorDoRequestOperationStatus( Data )) {
+    ULONG writeLen = iopb->Parameters.Write.Length;
+    
+    ULONG writingPid = FltGetRequestorProcessId(Data);
 
-        status = FltRequestOperationStatusCallback( Data,
-                                                    ransomdetectorOperationStatusCallback,
-                                                    (PVOID)(++OperationStatusCtx) );
-        if (!NT_SUCCESS(status)) {
+    /* 
+    NameLength = (USHORT)dosName.MaximumLength + Data->Iopb->TargetFileObject->FileName.MaximumLength + 2;  
+    NameBuffer = ExAllocatePoolWithTag(PagedPool,NameLength,NC_MAPPING_TAG);
+    NameString.Length = 0;
+    NameString.MaximumLength = NameLength;
+    NameString.Buffer = NameBuffer;
+    RtlCopyUnicodeString(&NameString, &dosName);
+    RtlAppendUnicodeStringToString(&NameString, &Data->Iopb->TargetFileObject->FileName);*/
+    FltGetFileNameInformation(Data, FLT_FILE_NAME_OPENED | FLT_FILE_NAME_QUERY_ALWAYS_ALLOW_CACHE_LOOKUP, &nameInfo);
 
-            PT_DBG_PRINT( PTDBG_TRACE_OPERATION_STATUS,
-                          ("ransomdetector!ransomdetectorPreOperation: FltRequestOperationStatusCallback Failed, status=%08x\n",
-                           status) );
+    //
+//  If the users original buffer had a MDL, get a system address.
+//
+
+    if (iopb->Parameters.Write.MdlAddress != NULL) {
+
+        //
+        //  This should be a simple MDL. We don't expect chained MDLs
+        //  this high up the stack
+        //
+
+        FLT_ASSERT(((PMDL)iopb->Parameters.Write.MdlAddress)->Next == NULL);
+
+        origBuf = MmGetSystemAddressForMdlSafe(iopb->Parameters.Write.MdlAddress,
+            NormalPagePriority | MdlMappingNoExecute);
+
+        if (origBuf == NULL) {
+
+            PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+                ("%wZ Failed to get system address for MDL: %p\n",
+                    &nameInfo->Name,
+                    iopb->Parameters.Write.MdlAddress));
+
+            //
+            //  If we could not get a system address for the users buffer,
+            //  then we are going to fail this operation.
+            //
+
+            Data->IoStatus.Status = STATUS_INSUFFICIENT_RESOURCES;
+            Data->IoStatus.Information = 0;
+            return FLT_PREOP_COMPLETE;
         }
+
     }
+    else {
+
+        //
+        //  There was no MDL defined, use the given buffer address.
+        //
+
+        origBuf = iopb->Parameters.Write.WriteBuffer;
+    }
+
+    PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+        ("writingPid: %d, Filename: %wZ, writeLen: %d, byteOffset: %lld, data: %s\n", writingPid, &nameInfo->Name, writeLen, byteOffset.QuadPart, origBuf));
+
+    if (writeLen == 1338) {
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("*********** I got the write opeartion\n"));
+    }
+
 
     // This template code does not do anything with the callbackData, but
     // rather returns FLT_PREOP_SUCCESS_WITH_CALLBACK.

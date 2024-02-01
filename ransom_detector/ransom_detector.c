@@ -14,6 +14,8 @@ Environment:
 
 --*/
 
+#include "process_monitor.h"
+
 #include <fltKernel.h>
 #include <dontuse.h>
 
@@ -361,6 +363,13 @@ Return Value:
 
     PT_DBG_PRINT( PTDBG_TRACE_ROUTINES,
                   ("ransomdetector!DriverEntry: Entered\n") );
+    ULONG reserverdValue = 0;
+    KeInitializeMutex(&g_procMutex, reserverdValue);
+
+    g_encryptorsHead = (PPROC_NODE) ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(PROC_NODE), PROC_TAG);
+    if (!g_encryptorsHead) {
+        return STATUS_NOT_ENOUGH_MEMORY;
+    }
 
     //
     //  Register with FltMgr to tell it our callback routines
@@ -421,9 +430,10 @@ Return Value:
 
     FltUnregisterFilter( gFilterHandle );
 
+    freeProcs();
+
     return STATUS_SUCCESS;
 }
-
 
 /*************************************************************************
     MiniFilter callback routines.
@@ -486,8 +496,8 @@ Return Value:
     FltGetFileNameInformation(Data, FLT_FILE_NAME_OPENED | FLT_FILE_NAME_QUERY_ALWAYS_ALLOW_CACHE_LOOKUP, &nameInfo);
 
     //
-//  If the users original buffer had a MDL, get a system address.
-//
+    //  If the users original buffer had a MDL, get a system address.
+    //
 
     if (iopb->Parameters.Write.MdlAddress != NULL) {
 

@@ -36,7 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ransom_detector.rc" />
-    <ClCompile Include="entropy.c" />
+    <ClCompile Include="randomness.c" />
     <ClCompile Include="logging.c" />
     <ClCompile Include="process_monitor.c" />
     <ClCompile Include="ransom_detector.c" />
@@ -161,6 +161,9 @@
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
+    <ClCompile>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Link>
@@ -169,6 +172,9 @@
     <DriverSign>
       <FileDigestAlgorithm>sha256</FileDigestAlgorithm>
     </DriverSign>
+    <ClCompile>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
@@ -194,6 +200,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="randomness.h" />
     <ClInclude Include="logging.h" />
     <ClInclude Include="process_monitor.h" />
   </ItemGroup>

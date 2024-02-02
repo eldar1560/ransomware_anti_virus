@@ -16,6 +16,7 @@ Environment:
 
 #include "process_monitor.h"
 #include "logging.h"
+#include "randomness.h"
 
 #include <fltKernel.h>
 #include <dontuse.h>
@@ -525,7 +526,8 @@ Return Value:
 
     PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
         ("writingPid: %d, Filename: %wZ, writeLen: %d, byteOffset: %lld, data: %s\n", writingPid, &nameInfo->Name, writeLen, byteOffset.QuadPart, origBuf));
-
+    PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+        ("isRandom: %d\n", isRandom(origBuf, writeLen)));
     if (writeLen == 1338) {
         PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
             ("*********** I got the write opeartion\n"));

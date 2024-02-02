@@ -27,7 +27,7 @@
     <ClCompile Include="ransom_detector.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="entropy.c">
+    <ClCompile Include="randomness.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="process_monitor.c">
@@ -47,6 +47,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="logging.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="randomness.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

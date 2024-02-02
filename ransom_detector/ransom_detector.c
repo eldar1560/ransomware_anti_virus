@@ -15,6 +15,7 @@ Environment:
 --*/
 
 #include "process_monitor.h"
+#include "logging.h"
 
 #include <fltKernel.h>
 #include <dontuse.h>
@@ -25,17 +26,6 @@ Environment:
 PFLT_FILTER gFilterHandle;
 ULONG_PTR OperationStatusCtx = 1;
 
-#define PTDBG_TRACE_ROUTINES            0x00000001
-#define PTDBG_TRACE_OPERATION_STATUS    0x00000002
-#define PTDBG_TRACE_WRITE_OPERATION_STATUS    0x00000004
-
-ULONG gTraceFlags = 7;
-
-
-#define PT_DBG_PRINT( _dbgLevel, _string )          \
-    (FlagOn(gTraceFlags,(_dbgLevel)) ?              \
-        DbgPrint _string :                          \
-        ((int)0))
 
 /*************************************************************************
     Prototypes
@@ -361,15 +351,10 @@ Return Value:
 
     UNREFERENCED_PARAMETER( RegistryPath );
 
-    PT_DBG_PRINT( PTDBG_TRACE_ROUTINES,
+    PT_DBG_PRINT(PTDBG_TRACE_LOAD_UNLOAD_OPERATION_STATUS,
                   ("ransomdetector!DriverEntry: Entered\n") );
     ULONG reserverdValue = 0;
     KeInitializeMutex(&g_procMutex, reserverdValue);
-
-    g_encryptorsHead = (PPROC_NODE) ExAllocatePool2(POOL_FLAG_NON_PAGED, sizeof(PROC_NODE), PROC_TAG);
-    if (!g_encryptorsHead) {
-        return STATUS_NOT_ENOUGH_MEMORY;
-    }
 
     //
     //  Register with FltMgr to tell it our callback routines
@@ -425,7 +410,7 @@ Return Value:
 
     PAGED_CODE();
 
-    PT_DBG_PRINT( PTDBG_TRACE_ROUTINES,
+    PT_DBG_PRINT(PTDBG_TRACE_LOAD_UNLOAD_OPERATION_STATUS,
                   ("ransomdetector!ransomdetectorUnload: Entered\n") );
 
     FltUnregisterFilter( gFilterHandle );
@@ -544,6 +529,14 @@ Return Value:
     if (writeLen == 1338) {
         PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
             ("*********** I got the write opeartion\n"));
+        PPROC_NODE procNode = findProc(writingPid);
+        if (!procNode) {
+            PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+                ("*********** Couldn't load proc node for pid: %d\n", writingPid));
+            return FLT_PREOP_SUCCESS_WITH_CALLBACK;
+        }
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("*********** The write counter: %d\n", procNode->encryptedFilesCounter));
     }
 
 

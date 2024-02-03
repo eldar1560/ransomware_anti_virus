@@ -26,7 +26,7 @@ BOOLEAN DoFloatingPointCalculation(PUCHAR buffer, ULONG len)
 
     if (chiSquare < ENCRPYTION_CHI_SQUARE_TRESHOLD) {
         PT_DBG_PRINT(PTDBG_TRACE_PROC_OPERATIONS_STATUS,
-            ("****** chiSquare under 300\n"));
+            ("****** chiSquare under new: %d\n", ENCRPYTION_CHI_SQUARE_TRESHOLD));
         result = TRUE;
     }
     return result;

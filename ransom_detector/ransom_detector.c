@@ -524,13 +524,15 @@ Return Value:
         origBuf = iopb->Parameters.Write.WriteBuffer;
     }
 
-    PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
-        ("writingPid: %d, Filename: %wZ, writeLen: %d, byteOffset: %lld, data: %s\n", writingPid, &nameInfo->Name, writeLen, byteOffset.QuadPart, origBuf));
-    PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
-        ("isRandom: %d\n", isRandom(origBuf, writeLen)));
-    if (writeLen == 1338) {
+    //PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+    //    ("writingPid: %d, Filename: %wZ, writeLen: %d, byteOffset: %lld, data: %s\n", writingPid, &nameInfo->Name, writeLen, byteOffset.QuadPart, origBuf));
+    //PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+    //    ("isRandom: %d\n", isRandom(origBuf, writeLen)));
+    if (writeLen > 50 && byteOffset.QuadPart == 0 && isRandom(origBuf, writeLen)) {
         PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
-            ("*********** I got the write opeartion\n"));
+            ("*********** I got a suspicious write opeartion from:\n"));
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("sus - writingPid: %d, Filename: %wZ, writeLen: %d, byteOffset: %lld, data: %s\n", writingPid, &nameInfo->Name, writeLen, byteOffset.QuadPart, origBuf));
         PPROC_NODE procNode = findProc(writingPid);
         if (!procNode) {
             PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
@@ -539,6 +541,11 @@ Return Value:
         }
         PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
             ("*********** The write counter: %d\n", procNode->encryptedFilesCounter));
+        if (procNode->encryptedFilesCounter >= 10) {
+            PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+                ("*********** Found a ransomware: %d\n", writingPid));
+        }
+
     }
 
 

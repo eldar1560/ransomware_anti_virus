@@ -421,6 +421,43 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
+NTSTATUS drvTerminateProcess(ULONG ulProcessID)
+{
+    NTSTATUS          ntStatus = STATUS_SUCCESS;
+    HANDLE            hProcess;
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    CLIENT_ID         ClientId;
+
+    DbgPrint("drvTerminateProcess( %u )", ulProcessID);
+
+    InitializeObjectAttributes(&ObjectAttributes, NULL, OBJ_INHERIT, NULL, NULL);
+
+    ClientId.UniqueProcess = (HANDLE)ulProcessID;
+    ClientId.UniqueThread = NULL;
+
+    __try
+    {
+        ntStatus = ZwOpenProcess(&hProcess, PROCESS_ALL_ACCESS, &ObjectAttributes, &ClientId);
+        if (NT_SUCCESS(ntStatus))
+        {
+            ntStatus = ZwTerminateProcess(hProcess, 0);
+            if (!NT_SUCCESS(ntStatus))
+                DbgPrint("ZwTerminateProcess failed with status : %08X\n", ntStatus);
+
+            ZwClose(hProcess);
+        }
+        else
+            DbgPrint("ZwOpenProcess failed with status : %08X\n", ntStatus);
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        ntStatus = STATUS_UNSUCCESSFUL;
+        DbgPrint("Exception caught in drvTerminateProcess()");
+    }
+
+    return ntStatus;
+}
+
 /*************************************************************************
     MiniFilter callback routines.
 *************************************************************************/
@@ -543,7 +580,9 @@ Return Value:
             ("*********** The write counter: %d\n", procNode->encryptedFilesCounter));
         if (procNode->encryptedFilesCounter >= 10) {
             PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
-                ("*********** Found a ransomware: %d\n", writingPid));
+                ("*********** Found a ransomware: %d, killing it\n", writingPid));
+
+            drvTerminateProcess(writingPid);
         }
 
     }

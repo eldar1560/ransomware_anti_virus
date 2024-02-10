@@ -17,8 +17,8 @@ void hooker::HookerX64::doHook(void* func, void* newAddr, void** origFunc) const
 
 	size_t* original_addr = (size_t*)((size_t)func + offset + 7);
 
-	// find the CC instruction between jmps
 	int index = HOOK_HEAD_SIZE * 2;
+	// find the CC instruction between jmps
 	//while (true) {
 	//	if (static_cast<uint8_t>(f[index++]) == 0xcc || index >= 1024) {
 	//		break;

@@ -5,6 +5,7 @@
 #include <memory>
 
 std::unique_ptr<hooker::Hooker> ransom_hooker = nullptr;
+unsigned int encryptCounter = 0;
 
 BOOL (*old_CryptEncrypt)(
 	HCRYPTKEY,
@@ -26,7 +27,11 @@ BOOL WINAPI my_CryptEncrypt(
 	DWORD      dwBufLen
 )
 {
-	OutputDebugStringA("inside hooked!!!\n");
+	OutputDebugStringA("cryptEncrypt hook data:\n");
+	OutputDebugStringA((LPCSTR)pbData);
+	if (encryptCounter > 5) {
+		ExitProcess(-1);
+	}
 	return old_CryptEncrypt(hKey,
 		hHash,
 		Final,

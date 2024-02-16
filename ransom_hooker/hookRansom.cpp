@@ -1,13 +1,14 @@
 #include "hookRansom.h"
 
 #include "HookerX64.h"
+#include "HookerX86.h"
 
 #include <memory>
 
 std::unique_ptr<hooker::Hooker> ransom_hooker = nullptr;
 unsigned int encryptCounter = 0;
 
-BOOL (*old_CryptEncrypt)(
+BOOL (WINAPI *old_CryptEncrypt)(
 	HCRYPTKEY,
 	HCRYPTHASH,
 	BOOL      ,
@@ -43,7 +44,13 @@ BOOL WINAPI my_CryptEncrypt(
 
 void hookRansom()
 {
+#if defined( _WIN64 )
+
 	ransom_hooker = std::make_unique<hooker::HookerX64>();
+#elif defined( _WIN32 )
+	ransom_hooker = std::make_unique<hooker::HookerX86>();
+#endif
+	
 
 	ransom_hooker->hook(reinterpret_cast<void*>(CryptEncrypt), reinterpret_cast<void*>(my_CryptEncrypt), reinterpret_cast<void**>(&old_CryptEncrypt));
 	OutputDebugStringA("hook succesfully!\n");

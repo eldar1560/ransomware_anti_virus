@@ -16,7 +16,7 @@ namespace hooker {
     class Hooker {
     public:
         void changeCodeAttrs(void *func, DWORD attr) const;
-        void hook(void *func, void *newAddr, void **origFunc, bool saveOrig=true) const;
+        void hook(void *func, void *newAddr, void **origFunc) const;
 
 		virtual ~Hooker() = 0;
 

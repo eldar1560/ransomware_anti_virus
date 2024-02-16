@@ -1,10 +1,11 @@
+#include "Hooker.h"
+#include "HookerError.h"
+
 #include <cstdio>
 #include <string>
 #include <cstdlib>
 #include <cstring>
 #include <assert.h>
-#include "Hooker.h"
-#include "HookerError.h"
 
 hooker::Hooker::~Hooker() {
     for (auto& it : gHookedMap) {
@@ -28,10 +29,35 @@ void hooker::Hooker::changeCodeAttrs(void *func, DWORD attr) const {
     }
 }
 
-void hooker::Hooker::hook(void *func, void *newAddr, void **origFunc, bool saveOrig) const {
+void hooker::Hooker::hook(void *func, void *newAddr, void **origFunc) const {
     changeCodeAttrs(func, PAGE_EXECUTE_READWRITE);
 
+    int index = HOOK_HEAD_SIZE * 2;
+
+    // TODO: use this to validate the size until 0xCC.
+    // find the CC instruction between jmps
+    //while (true) {
+    //	if (static_cast<uint8_t>(f[index++]) == 0xcc || index >= 1024) {
+    //		break;
+    //	}
+    //}
+    //index += HOOK_HEAD_SIZE;
+
+
+    void* old = VirtualAlloc(NULL, index, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+    if (old == nullptr) {
+        return;
+    }
+
+    memcpy((void*)((size_t)old + HOOK_HEAD_SIZE), func, index - HOOK_HEAD_SIZE);
+
+    gHookedMap[func] = old;
+
     doHook(func, newAddr, origFunc);
+
+    if (origFunc) {
+        *origFunc = gHookedMap[func];
+    }
 
     changeCodeAttrs(func, PAGE_EXECUTE_READ);
 }

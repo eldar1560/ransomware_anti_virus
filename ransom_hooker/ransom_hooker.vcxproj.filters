@@ -36,6 +36,9 @@
     <ClInclude Include="HookerX86.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="randomness.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -54,6 +57,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HookerX86.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="randomness.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

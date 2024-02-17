@@ -2,8 +2,10 @@
 
 #include "HookerX64.h"
 #include "HookerX86.h"
+#include "randomness.h"
 
 #include <memory>
+#include <string>
 
 std::unique_ptr<hooker::Hooker> ransom_hooker = nullptr;
 unsigned int encryptCounter = 0;
@@ -30,9 +32,19 @@ BOOL WINAPI my_CryptEncrypt(
 {
 	OutputDebugStringA("cryptEncrypt hook data:\n");
 	OutputDebugStringA((LPCSTR)pbData);
+	if (is_random(pbData, *pdwDataLen)) {
+		OutputDebugStringA("Found random key encryption, incrementing the counter");
+		encryptCounter++;
+	}	
+	else
+	{
+		OutputDebugStringA("Didn't found random");
+	}
+
 	if (encryptCounter > 5) {
 		ExitProcess(-1);
 	}
+
 	return old_CryptEncrypt(hKey,
 		hHash,
 		Final,

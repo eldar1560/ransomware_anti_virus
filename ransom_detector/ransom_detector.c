@@ -497,7 +497,7 @@ NTSTATUS logDetection(ULONG processID)
         return status;
     }
 
-    status = RtlStringCbPrintfA(pszDest, cbDest, "%hu/%hu/%hu %hu:%hu:%hu - %wZ\n",
+    status = RtlStringCbPrintfA(pszDest, cbDest, "Ransom Driver Detector - %hu/%hu/%hu %hu:%hu:%hu - %wZ\n",
         currentTimeFields.Day,
         currentTimeFields.Month,
         currentTimeFields.Year,

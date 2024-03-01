@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
+using System.IO;
 
 namespace ransomAvGui
 {
@@ -41,11 +42,16 @@ namespace ransomAvGui
 			dt.Start();
 
 		}
-
+		
 		// Tick handler    
 		private void timer_Tick(object sender, EventArgs e)
-		{
-			Log.Text = "a";
+		{			
+			string filename = "c:\\windows\\temp\\ransomav.log";
+			if (File.Exists(filename))
+			{
+				Log.Text = System.Text.Encoding.UTF8.GetString((File.ReadAllBytes(filename)));
+			}
+
 		}
 
 		private void DriverDetector_Clicked(object sender, RoutedEventArgs e)
@@ -55,11 +61,9 @@ namespace ransomAvGui
 			if (is_checked)
 			{
 				InstallHinfSection(IntPtr.Zero, IntPtr.Zero, "my path", 0);
-				Log.Text = "clicked";
 			}
 			else
 			{
-				Log.Text = "not clicked";
 			}
 			
 		}
@@ -70,11 +74,9 @@ namespace ransomAvGui
 
 			if (is_checked)
 			{
-				Log.Text = "clicked";
 			}
 			else
 			{
-				Log.Text = "not clicked";
 			}
 		}
 	}

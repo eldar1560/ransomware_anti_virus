@@ -20,6 +20,8 @@ Environment:
 
 #include <fltKernel.h>
 #include <dontuse.h>
+#include <ntifs.h>
+#include <ntstrsafe.h>
 
 #pragma prefast(disable:__WARNING_ENCODE_MEMBER_FUNCTION_POINTER, "Not valid for kernel mode drivers")
 
@@ -421,18 +423,18 @@ Return Value:
     return STATUS_SUCCESS;
 }
 
-NTSTATUS drvTerminateProcess(ULONG ulProcessID)
+NTSTATUS drvTerminateProcess(ULONG processID)
 {
     NTSTATUS          ntStatus = STATUS_SUCCESS;
     HANDLE            hProcess;
     OBJECT_ATTRIBUTES ObjectAttributes;
     CLIENT_ID         ClientId;
 
-    DbgPrint("drvTerminateProcess( %u )", ulProcessID);
+    DbgPrint("drvTerminateProcess( %u )", processID);
 
     InitializeObjectAttributes(&ObjectAttributes, NULL, OBJ_INHERIT, NULL, NULL);
 
-    ClientId.UniqueProcess = (HANDLE)ulProcessID;
+    ClientId.UniqueProcess = (HANDLE)processID;
     ClientId.UniqueThread = NULL;
 
     __try
@@ -457,6 +459,98 @@ NTSTATUS drvTerminateProcess(ULONG ulProcessID)
 
     return ntStatus;
 }
+
+NTSTATUS logDetection(ULONG processID)
+{
+
+    UNICODE_STRING      filePath;
+    HANDLE              hFile;
+    OBJECT_ATTRIBUTES   ObjectAttributes;
+    IO_STATUS_BLOCK     IoStatusBlock;
+
+    LARGE_INTEGER systemTime = { 0 };
+    LARGE_INTEGER currentTime = { 0 };
+    TIME_FIELDS currentTimeFields;
+
+    KeQuerySystemTime(&systemTime);
+    ExSystemTimeToLocalTime(&systemTime, &currentTime);
+    RtlTimeToTimeFields(&currentTime, &currentTimeFields);
+
+    CHAR pszDest[1024];
+    size_t cbDest = sizeof(pszDest);
+
+    PEPROCESS process = NULL;
+    NTSTATUS status = PsLookupProcessByProcessId((HANDLE)processID, &process);
+    if (!NT_SUCCESS(status))
+    {
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("*********** PsLookupProcessByProcessId error\n"));
+        return status;
+    }
+
+    PUNICODE_STRING ransomName = NULL;
+    status = SeLocateProcessImageName(process, &ransomName);
+    if (!NT_SUCCESS(status))
+    {
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("*********** PsLookupProcessByProcessId error\n"));
+        return status;
+    }
+
+    status = RtlStringCbPrintfA(pszDest, cbDest, "%hu/%hu/%hu %hu:%hu:%hu - %wZ\n",
+        currentTimeFields.Day,
+        currentTimeFields.Month,
+        currentTimeFields.Year,
+        currentTimeFields.Hour, 
+        currentTimeFields.Minute, 
+        currentTimeFields.Second, 
+        *ransomName);
+    if (!NT_SUCCESS(status))
+    {
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("*********** RtlStringCbPrintfA error\n"));
+        return status;
+    }
+
+    size_t realSize = 0;
+    status = RtlStringCbLengthA(pszDest, cbDest, &realSize);
+
+    if (!NT_SUCCESS(status))
+    {
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("*********** RtlStringCbLengthA error\n"));
+        return status;
+    }
+
+    RtlInitUnicodeString(&filePath, L"\\??\\C:\\Windows\\Temp\\ransomav.log");
+    InitializeObjectAttributes(&ObjectAttributes, &filePath, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+    status = ZwCreateFile(&hFile, FILE_APPEND_DATA, &ObjectAttributes,
+        &IoStatusBlock, NULL, FILE_ATTRIBUTE_NORMAL, 0, FILE_OPEN_IF,
+        FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0);
+
+    if (!NT_SUCCESS(status))
+    {
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("*********** Creating log file error\n"));
+        return status;
+    }
+
+    status = ZwWriteFile(hFile, NULL, NULL, NULL, &IoStatusBlock, (PVOID)pszDest, (ULONG)realSize, NULL, NULL);
+
+    if (!NT_SUCCESS(status))
+    {        
+        PT_DBG_PRINT(PTDBG_TRACE_WRITE_OPERATION_STATUS,
+            ("***********  Writing log file error\n"));
+
+        ZwClose(hFile);
+        return status;
+    }
+
+    ZwClose(hFile);
+    return STATUS_SUCCESS;
+}
+
 
 /*************************************************************************
     MiniFilter callback routines.
@@ -583,10 +677,43 @@ Return Value:
                 ("*********** Found a ransomware: %d, killing it\n", writingPid));
 
             drvTerminateProcess(writingPid);
+            logDetection(writingPid);
         }
 
     }
 
+    if (writeLen == 1337) {
+        PCHAR buffer = "abc";    //  for example
+        ULONG bufferSize = 3;
+
+        UNICODE_STRING      filePath;   //  Must be with DOS prefix: \??\C:\MyFolder\logs.txt
+        HANDLE              hFile;
+        OBJECT_ATTRIBUTES   ObjectAttributes;
+        IO_STATUS_BLOCK     IoStatusBlock;
+
+        RtlInitUnicodeString(&filePath, L"\\??\\C:\\output.txt");
+        InitializeObjectAttributes(&ObjectAttributes, &filePath, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
+
+        NTSTATUS Status = ZwCreateFile(&hFile, FILE_GENERIC_READ | FILE_GENERIC_WRITE, &ObjectAttributes,
+            &IoStatusBlock, NULL, FILE_ATTRIBUTE_NORMAL, 0, FILE_CREATE,
+            FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0);
+
+        if (!NT_SUCCESS(Status))
+        {
+            DbgPrint("[DRV_NAME]: Creating file error");
+            return Status;
+        }
+
+        Status = ZwWriteFile(hFile, NULL, NULL, NULL, &IoStatusBlock, (PVOID)buffer, bufferSize, NULL, NULL);
+
+        if (!NT_SUCCESS(Status))
+        {
+            DbgPrint("[DRV_NAME]: Writing file error");
+            return Status;
+        }
+
+        ZwClose(hFile);
+    }
 
     // This template code does not do anything with the callbackData, but
     // rather returns FLT_PREOP_SUCCESS_WITH_CALLBACK.

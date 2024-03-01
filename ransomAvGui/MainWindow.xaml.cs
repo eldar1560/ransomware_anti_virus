@@ -37,14 +37,13 @@ namespace ransomAvGui
 			InitializeComponent();
 
 			dt = new DispatcherTimer();
-			dt.Tick += new EventHandler(timer_Tick);
-			dt.Interval = new TimeSpan(0, 0, 1); // execute every second
+			dt.Tick += new EventHandler(logReader_Tick);
+			dt.Interval = new TimeSpan(0, 0, 0, 0, 250); // execute every second
 			dt.Start();
 
 		}
-		
-		// Tick handler    
-		private void timer_Tick(object sender, EventArgs e)
+		 
+		private void logReader_Tick(object sender, EventArgs e)
 		{			
 			string filename = "c:\\windows\\temp\\ransomav.log";
 			if (File.Exists(filename))

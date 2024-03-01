@@ -13,7 +13,14 @@
 			<TextBlock Text="Ransom AV" Style="{StaticResource HeaderTextBlockStyle}" HorizontalAlignment="Center" />
 			<ToggleButton x:Name="Hooker" Click="Hooker_Clicked" Content="RansomHooker" />
 			<ToggleButton x:Name="DriverDetector" Click="DriverDetector_Clicked" Content="RansomDriverDetector" VerticalAlignment="Stretch" />
-			<TextBlock x:Name="Log" />
+			<ui:SimpleStackPanel Margin="12" Spacing="24" HorizontalAlignment="Center">
+				<TextBlock x:Name="LogHeader" Text="Detections" Style="{StaticResource SubheaderTextBlockStyle}" HorizontalAlignment="Center" />
+				<Border BorderThickness="1,1,1,1" BorderBrush="Black">
+
+					<TextBlock x:Name="Log"/>
+				</Border>
+			</ui:SimpleStackPanel>
+
 		</ui:SimpleStackPanel>
 
 	</Grid>

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -12,6 +13,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Runtime.InteropServices;
+using System.Windows.Threading;
 
 namespace ransomAvGui
 {
@@ -20,9 +23,59 @@ namespace ransomAvGui
 	/// </summary>
 	public partial class MainWindow : Window
 	{
+
+		[DllImport("Setupapi.dll", EntryPoint = "InstallHinfSection", CallingConvention = CallingConvention.StdCall)]
+		public static extern void InstallHinfSection(
+		[In] IntPtr hwnd,
+		[In] IntPtr ModuleHandle,
+		[In, MarshalAs(UnmanagedType.LPWStr)] string CmdLineBuffer,
+		int nCmdShow);
+		DispatcherTimer dt;
 		public MainWindow()
 		{
 			InitializeComponent();
+
+			dt = new DispatcherTimer();
+			dt.Tick += new EventHandler(timer_Tick);
+			dt.Interval = new TimeSpan(0, 0, 1); // execute every second
+			dt.Start();
+
+		}
+
+		// Tick handler    
+		private void timer_Tick(object sender, EventArgs e)
+		{
+			Log.Text = "a";
+		}
+
+		private void DriverDetector_Clicked(object sender, RoutedEventArgs e)
+		{
+			bool is_checked = DriverDetector.IsChecked ?? false;
+
+			if (is_checked)
+			{
+				InstallHinfSection(IntPtr.Zero, IntPtr.Zero, "my path", 0);
+				Log.Text = "clicked";
+			}
+			else
+			{
+				Log.Text = "not clicked";
+			}
+			
+		}
+
+		private void Hooker_Clicked(object sender, RoutedEventArgs e)
+		{
+			bool is_checked = Hooker.IsChecked ?? false;
+
+			if (is_checked)
+			{
+				Log.Text = "clicked";
+			}
+			else
+			{
+				Log.Text = "not clicked";
+			}
 		}
 	}
 }

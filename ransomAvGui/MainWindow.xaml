@@ -5,8 +5,36 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ransomAvGui"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Ransom AV" Height="450" Width="800"
+		xmlns:ui="http://schemas.modernwpf.com/2019"
+        ui:WindowHelper.UseModernWindowStyle="True">
+	<Grid>
+		<ui:SimpleStackPanel Margin="12" Spacing="24">
+			<TextBlock Text="Ransom AV" Style="{StaticResource HeaderTextBlockStyle}" HorizontalAlignment="Center" />
+			<ToggleButton x:Name="Hooker" Click="Hooker_Clicked" Content="RansomHooker" />
+			<ToggleButton x:Name="DriverDetector" Click="DriverDetector_Clicked" Content="RansomDriverDetector" VerticalAlignment="Stretch" />
+			<TextBlock x:Name="Log" />
+			<StackPanel Margin="15">
+				<StackPanel>
+					<ToggleButton Margin="5" Padding="5" Width="80" HorizontalAlignment="Left">
+						<ToggleButton.Style>
+							<Style TargetType="{x:Type ToggleButton}">
+								<Setter Property="Content" Value="Disarmed"/>
+								<Style.Triggers>
+									<Trigger Property="IsChecked" Value="True">
+										<Setter Property="Content" Value="ARMED"/>
+										<Setter Property="Foreground" Value="Red"/>
+									</Trigger>
+								</Style.Triggers>
+							</Style>
+						</ToggleButton.Style>
+					</ToggleButton>
+				</StackPanel>
+			</StackPanel>
+		</ui:SimpleStackPanel>
 
-    </Grid>
+	</Grid>
+
+	
+	
 </Window>

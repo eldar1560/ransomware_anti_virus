@@ -9,6 +9,8 @@
 
   <ItemGroup>
     <PackageReference Include="ModernWpfUI" Version="0.9.5" />
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="8.0.0" />
+    <PackageReference Include="TopShelf.ServiceInstaller" Version="4.3.0" />
   </ItemGroup>
 
 </Project>

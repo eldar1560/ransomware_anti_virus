@@ -16,6 +16,9 @@ using System.Windows.Shapes;
 using System.Runtime.InteropServices;
 using System.Windows.Threading;
 using System.IO;
+using System.Diagnostics;
+using System.ServiceProcess;
+using System.Configuration.Install;
 
 namespace ransomAvGui
 {
@@ -24,14 +27,7 @@ namespace ransomAvGui
 	/// </summary>
 	public partial class MainWindow : Window
 	{
-
-		[DllImport("Setupapi.dll", EntryPoint = "InstallHinfSection", CallingConvention = CallingConvention.StdCall)]
-		public static extern void InstallHinfSection(
-		[In] IntPtr hwnd,
-		[In] IntPtr ModuleHandle,
-		[In, MarshalAs(UnmanagedType.LPWStr)] string CmdLineBuffer,
-		int nCmdShow);
-		DispatcherTimer dt;
+		private DispatcherTimer dt;
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -58,11 +54,29 @@ namespace ransomAvGui
 			bool is_checked = DriverDetector.IsChecked ?? false;
 
 			if (is_checked)
-			{
-				InstallHinfSection(IntPtr.Zero, IntPtr.Zero, "ransom_detector.inf", 0);
+			{				
+				var process = new Process();
+				process.StartInfo.UseShellExecute = false;
+				process.StartInfo.CreateNoWindow = true;
+				process.StartInfo.RedirectStandardOutput = true;
+				process.StartInfo.RedirectStandardError = true;
+				process.StartInfo.FileName = "cmd.exe";
+				process.StartInfo.Arguments = "/c C:\\Windows\\System32\\InfDefaultInstall.exe C:\\Users\\user\\Desktop\\ransom_detector\\net6.0-windows\\ransom_detector.inf"; // where driverPath is path of .inf file
+				process.Start();
+				process.WaitForExit();
+				process.Dispose();
+
+				ServiceController controller = new ServiceController("ransom_detector");
+				controller.Start();
 			}
 			else
 			{
+				
+				ServiceInstaller ServiceInstallerObj = new ServiceInstaller();
+				InstallContext Context = new InstallContext("log_file.txt", null);
+				ServiceInstallerObj.Context = Context;
+				ServiceInstallerObj.ServiceName = "ransom_detector";
+				ServiceInstallerObj.Uninstall(null);				
 			}
 			
 		}

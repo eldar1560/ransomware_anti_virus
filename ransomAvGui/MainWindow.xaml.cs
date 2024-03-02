@@ -59,7 +59,7 @@ namespace ransomAvGui
 
 			if (is_checked)
 			{
-				InstallHinfSection(IntPtr.Zero, IntPtr.Zero, "my path", 0);
+				InstallHinfSection(IntPtr.Zero, IntPtr.Zero, "ransom_detector.inf", 0);
 			}
 			else
 			{

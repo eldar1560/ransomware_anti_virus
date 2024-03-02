@@ -19,6 +19,7 @@ using System.IO;
 using System.Diagnostics;
 using System.ServiceProcess;
 using System.Configuration.Install;
+using System.Reflection;
 
 namespace ransomAvGui
 {
@@ -54,14 +55,16 @@ namespace ransomAvGui
 			bool is_checked = DriverDetector.IsChecked ?? false;
 
 			if (is_checked)
-			{				
+			{
+				string executable_location = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+				executable_location += "\\ransom_detector.inf";
 				var process = new Process();
 				process.StartInfo.UseShellExecute = false;
 				process.StartInfo.CreateNoWindow = true;
 				process.StartInfo.RedirectStandardOutput = true;
 				process.StartInfo.RedirectStandardError = true;
-				process.StartInfo.FileName = "cmd.exe";
-				process.StartInfo.Arguments = "/c C:\\Windows\\System32\\InfDefaultInstall.exe C:\\Users\\user\\Desktop\\ransom_detector\\net6.0-windows\\ransom_detector.inf"; // where driverPath is path of .inf file
+				process.StartInfo.FileName = "cmd.exe";				
+				process.StartInfo.Arguments = "/c C:\\Windows\\System32\\InfDefaultInstall.exe " + executable_location;
 				process.Start();
 				process.WaitForExit();
 				process.Dispose();
@@ -87,9 +90,22 @@ namespace ransomAvGui
 
 			if (is_checked)
 			{
+				Microsoft.Win32.RegistryKey key;
+				key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("Software\\WOW6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Windows");
+				key.SetValue("LoadAppInit_DLLs", 1);
+				string executable_location = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+				key.SetValue("AppInit_DLLs", executable_location + "\\ransom_hooker.dll");
+				key.SetValue("RequireSignedAppInit_DLLs", 0);
+				key.Close();
 			}
 			else
 			{
+				Microsoft.Win32.RegistryKey key;
+				key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("Software\\WOW6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Windows");
+				key.DeleteValue("LoadAppInit_DLLs");				
+				key.DeleteValue("AppInit_DLLs");
+				key.DeleteValue("RequireSignedAppInit_DLLs");
+				key.Close();
 			}
 		}
 	}

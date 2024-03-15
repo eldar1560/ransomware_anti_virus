@@ -682,39 +682,6 @@ Return Value:
 
     }
 
-    if (writeLen == 1337) {
-        PCHAR buffer = "abc";    //  for example
-        ULONG bufferSize = 3;
-
-        UNICODE_STRING      filePath;   //  Must be with DOS prefix: \??\C:\MyFolder\logs.txt
-        HANDLE              hFile;
-        OBJECT_ATTRIBUTES   ObjectAttributes;
-        IO_STATUS_BLOCK     IoStatusBlock;
-
-        RtlInitUnicodeString(&filePath, L"\\??\\C:\\output.txt");
-        InitializeObjectAttributes(&ObjectAttributes, &filePath, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, NULL, NULL);
-
-        NTSTATUS Status = ZwCreateFile(&hFile, FILE_GENERIC_READ | FILE_GENERIC_WRITE, &ObjectAttributes,
-            &IoStatusBlock, NULL, FILE_ATTRIBUTE_NORMAL, 0, FILE_CREATE,
-            FILE_SYNCHRONOUS_IO_NONALERT, NULL, 0);
-
-        if (!NT_SUCCESS(Status))
-        {
-            DbgPrint("[DRV_NAME]: Creating file error");
-            return Status;
-        }
-
-        Status = ZwWriteFile(hFile, NULL, NULL, NULL, &IoStatusBlock, (PVOID)buffer, bufferSize, NULL, NULL);
-
-        if (!NT_SUCCESS(Status))
-        {
-            DbgPrint("[DRV_NAME]: Writing file error");
-            return Status;
-        }
-
-        ZwClose(hFile);
-    }
-
     // This template code does not do anything with the callbackData, but
     // rather returns FLT_PREOP_SUCCESS_WITH_CALLBACK.
     // This passes the request down to the next miniFilter in the chain.

@@ -38,6 +38,21 @@ namespace ransomAvGui
 			dt.Interval = new TimeSpan(0, 0, 0, 0, 250); // execute every second
 			dt.Start();
 
+			Microsoft.Win32.RegistryKey key;
+			key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("Software\\WOW6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Windows");			
+			string executable_location = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+			if (key.GetValueNames().Contains("AppInit_DLLs") && 
+				key.GetValue("AppInit_DLLs").Equals(executable_location + "\\ransom_hooker.dll")) {
+				Hooker.IsChecked = true;
+			}
+
+			ServiceController[] services = ServiceController.GetDevices();
+			var service = services.FirstOrDefault(s => s.ServiceName.Equals("ransom_detector"));
+			if (service != null) {
+				DriverDetector.IsChecked = true;
+			}
+
+
 		}
 		 
 		private void logReader_Tick(object sender, EventArgs e)
@@ -76,7 +91,7 @@ namespace ransomAvGui
 			{
 				
 				ServiceInstaller ServiceInstallerObj = new ServiceInstaller();
-				InstallContext Context = new InstallContext("log_file.txt", null);
+				InstallContext Context = new InstallContext();
 				ServiceInstallerObj.Context = Context;
 				ServiceInstallerObj.ServiceName = "ransom_detector";
 				ServiceInstallerObj.Uninstall(null);				
@@ -102,9 +117,12 @@ namespace ransomAvGui
 			{
 				Microsoft.Win32.RegistryKey key;
 				key = Microsoft.Win32.Registry.LocalMachine.CreateSubKey("Software\\WOW6432Node\\Microsoft\\Windows NT\\CurrentVersion\\Windows");
-				key.DeleteValue("LoadAppInit_DLLs");				
-				key.DeleteValue("AppInit_DLLs");
-				key.DeleteValue("RequireSignedAppInit_DLLs");
+				key.SetValue("LoadAppInit_DLLs", 0);
+				key.SetValue("AppInit_DLLs", "");
+				if (key.GetValueNames().Contains("RequireSignedAppInit_DLLs"))
+				{
+					key.DeleteValue("RequireSignedAppInit_DLLs");
+				}								
 				key.Close();
 			}
 		}

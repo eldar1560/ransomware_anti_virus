@@ -34,16 +34,6 @@ void hooker::Hooker::hook(void *func, void *newAddr, void **origFunc) const {
 
     int index = HOOK_HEAD_SIZE * 2;
 
-    // TODO: use this to validate the size until 0xCC.
-    // find the CC instruction between jmps
-    //while (true) {
-    //	if (static_cast<uint8_t>(f[index++]) == 0xcc || index >= 1024) {
-    //		break;
-    //	}
-    //}
-    //index += HOOK_HEAD_SIZE;
-
-
     void* old = VirtualAlloc(NULL, index, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     if (old == nullptr) {
         return;
